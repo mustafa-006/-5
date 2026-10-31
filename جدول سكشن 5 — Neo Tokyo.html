@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>جدول سكشن 5 — NEO TOKYO</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Orbitron:wght@500;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11.1.14/swiper-bundle.min.js"></script>
+<style>
+:root{--bg:#07040f;--pink:#ff2e93;--cyan:#00f0ff;--violet:#8a2eff;--txt:#e9e6ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{background:var(--bg);color:var(--txt);font-family:'Cairo',sans-serif;margin:0;overflow-x:hidden}
+.orb{font-family:'Orbitron','Cairo',sans-serif}
+.swiper{overflow:hidden;width:100%}.swiper-wrapper{display:flex;transition-property:transform}.swiper-slide{flex-shrink:0;width:100%;position:relative}
+#fx{position:fixed;inset:0;z-index:0}
+.sky{position:fixed;bottom:0;left:0;right:0;height:42vh;z-index:0;opacity:.55;pointer-events:none}
+.scan{position:fixed;inset:0;z-index:5;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
+.glitch{position:relative;text-shadow:0 0 18px var(--pink),0 0 40px var(--violet)}
+.glitch::before,.glitch::after{content:attr(data-t);position:absolute;inset:0;overflow:hidden}
+.glitch::before{color:var(--cyan);animation:g1 2.4s infinite steps(1);clip-path:inset(0 0 60% 0)}
+.glitch::after{color:var(--pink);animation:g2 3s infinite steps(1);clip-path:inset(55% 0 0 0)}
+@keyframes g1{0%,92%{transform:none}94%{transform:translate(-4px,1px)}97%{transform:translate(3px,-1px)}}
+@keyframes g2{0%,88%{transform:none}90%{transform:translate(4px,0)}95%{transform:translate(-3px,1px)}}
+.card{position:relative;background:linear-gradient(135deg,rgba(138,46,255,.18),rgba(0,240,255,.07));border:1px solid rgba(0,240,255,.35);border-radius:14px;padding:16px;backdrop-filter:blur(8px);transition:box-shadow .3s,border-color .3s;overflow:hidden}
+.card:hover{border-color:var(--pink);box-shadow:0 0 28px rgba(255,46,147,.45)}
+.card::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);transform:skewX(-20deg);animation:sh 4s infinite}
+@keyframes sh{0%{left:-60%}60%,100%{left:140%}}
+.tab{cursor:pointer;border:1px solid rgba(0,240,255,.4);padding:8px 18px;border-radius:999px;font-weight:700;transition:.25s;background:rgba(0,0,0,.35);white-space:nowrap}
+.tab.on{background:var(--pink);border-color:var(--pink);box-shadow:0 0 22px var(--pink);color:#fff}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:pl 1.4s infinite}
+@keyframes pl{50%{opacity:.2}}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<svg class="sky" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true">
+<defs><linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a2eff" stop-opacity=".7"/><stop offset="1" stop-color="#07040f"/></linearGradient></defs>
+<path fill="url(#gr)" d="M0 300V190h40v-50h30v50h30v-90h40v90h30v-30h50v-110h25v110h45v-60h40v-40h30v100h35v-130h20v130h50v-70h45v-30h35v100h40v-150h30v150h45v-60h50v-70h30v130h40v-100h45v100h35v-45h50v-80h35v125h40v-130h28v130h45v-60h45v60H1200v110z"/>
+</svg>
+<div class="scan"></div>
+
+<main class="relative z-10 max-w-5xl mx-auto px-4 py-8">
+  <header class="text-center mb-8">
+    <div class="orb text-cyan-300 tracking-[.5em] text-xs mb-2" id="sub">// NEO TOKYO · 2026-2027 · SEMESTER 1 //</div>
+    <h1 class="orb glitch text-6xl md:text-8xl font-black text-white" data-t="SEC-05" id="title">SEC-05</h1>
+    <p class="mt-3 text-lg text-pink-300 font-bold" id="ar">سكشن 5 · الفرقة الأولى · الملابس الجاهزة <span class="text-cyan-300">東京</span></p>
+  </header>
+
+  <div id="tabs" class="flex gap-2 overflow-x-auto pb-3 mb-4 justify-start md:justify-center"></div>
+
+  <div class="swiper" id="sw"><div class="swiper-wrapper" id="wrap"></div></div>
+
+  <p class="text-center text-xs text-violet-300/70 mt-8">اسحب يمين / شمال أو اختار اليوم من فوق ← البيانات متاخدة من الصفحة الأولى فقط في الـPDF</p>
+</main>
+
+<script>
+const DAYS=[
+{n:'الأحد',k:'SUN',items:[
+ ['12:00 – 1:00','الموضة والأزياء','م.م إيمان / م. بهنسي','G106'],
+ ['2:00 – 3:00','تكنولوجيا صناعة الملابس الجاهزة','م.د/ إيمان عبد المعطي','C108'],
+ ['5:00 – 6:00','تشكيل على المانيكان 1','م. روضة / م. الاء','—']]},
+{n:'الاثنين',k:'MON',off:true,items:[]},
+{n:'الثلاثاء',k:'TUE',items:[
+ ['9:00 – 11:00','أسس بناء الجسم','م. روضة / م. الاء','G107'],
+ ['12:00 – 1:00','تكنولوجيا المعلومات','م. دينا','C107'],
+ ['5:00 – 6:00','أسس بناء الجسم','م. روضة','—']]},
+{n:'الأربعاء',k:'WED',items:[
+ ['9:00 – 10:00','تشكيل على المانيكان 1','م. روضة / م. الاء','C108'],
+ ['12:00 – 1:00','تكنولوجيا المعلومات','م.د/ مها توفيق','C108'],
+ ['1:00 – 2:00','تشكيل على المانيكان 1','م.د/ هبة رزق الله','C104'],
+ ['5:00 – 6:00','تكنولوجيا المعلومات','م.د/ مها توفيق','C104']]},
+{n:'الخميس',k:'THU',items:[
+ ['9:00 – 10:00','أسس بناء الجسم','م.د/ جيهان يوسف','C104'],
+ ['12:00 – 1:00','لغة إيطالية 1','أ.د/ وفاء عبد التواب','G203'],
+ ['1:00 – 2:00','تكنولوجيا المعلومات','م. دينا','—'],
+ ['3:00 – 4:00','موضة وأزياء','م. دينا / م. بهنسي','—']]}
+];
+const wrap=document.getElementById('wrap'),tabs=document.getElementById('tabs');
+DAYS.forEach((d,i)=>{
+ const t=document.createElement('button');t.className='tab'+(i?'':' on');t.textContent=d.n;t.onclick=()=>sw.slideTo(i);tabs.appendChild(t);
+ const s=document.createElement('div');s.className='swiper-slide px-1';
+ let h=`<div class="flex items-center gap-3 mb-4"><span class="dot"></span><h2 class="orb text-3xl font-black text-cyan-300">${d.k}</h2><span class="text-xl font-bold">${d.n}</span></div>`;
+ if(d.off) h+=`<div class="card text-center py-16"><div class="orb text-5xl font-black text-pink-400 glitch" data-t="DAY OFF">DAY OFF</div><p class="mt-3 text-violet-200">يوم إجازة · ريّح دماغك 🌌</p></div>`;
+ else h+=`<div class="grid gap-3 md:grid-cols-2">`+d.items.map(x=>`<div class="card lec"><div class="orb text-sm text-pink-300 mb-1" dir="ltr">⏱ ${x[0]}</div><div class="text-xl font-black leading-snug">${x[1]}</div><div class="text-violet-200 mt-1">👤 ${x[2]}</div><div class="orb mt-3 inline-block text-xs px-3 py-1 rounded-full border border-cyan-300 text-cyan-300">ROOM ${x[3]}</div></div>`).join('')+`</div>`;
+ s.innerHTML=h;wrap.appendChild(s);
+});
+const sw=new Swiper('#sw',{speed:600,spaceBetween:24,grabCursor:true,on:{slideChange(s){
+ [...tabs.children].forEach((b,i)=>b.classList.toggle('on',i===s.activeIndex));
+ gsap.fromTo(s.slides[s.activeIndex].querySelectorAll('.card'),{y:40,opacity:0,scale:.95},{y:0,opacity:1,scale:1,stagger:.12,duration:.6,ease:'back.out(1.6)'});}}});
+
+// intro
+const tl=gsap.timeline();
+tl.from('#sub',{opacity:0,y:-20,duration:.6}).from('#title',{scale:.4,opacity:0,duration:.9,ease:'elastic.out(1,.5)'},'-=.2')
+  .from('#ar',{opacity:0,y:20,duration:.6},'-=.4').from('.tab',{y:20,opacity:0,stagger:.08,duration:.4},'-=.2')
+  .from('.swiper-slide:first-child .card',{x:-60,opacity:0,stagger:.15,duration:.6,ease:'power3.out'},'-=.2');
+gsap.to('#title',{y:-6,repeat:-1,yoyo:true,duration:2.2,ease:'sine.inOut'});
+
+// 3D tilt
+document.addEventListener('mousemove',e=>{
+ const c=e.target.closest?.('.lec');if(!c)return;const r=c.getBoundingClientRect();
+ gsap.to(c,{rotationY:((e.clientX-r.left)/r.width-.5)*14,rotationX:-((e.clientY-r.top)/r.height-.5)*14,transformPerspective:600,duration:.3});});
+document.addEventListener('mouseout',e=>{const c=e.target.closest?.('.lec');if(c)gsap.to(c,{rotationX:0,rotationY:0,duration:.5});});
+
+// neon rain + grid
+const cv=document.getElementById('fx'),cx=cv.getContext('2d');let W,H,drops=[];
+function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;drops=Array.from({length:Math.floor(W/14)},()=>({x:Math.random()*W,y:Math.random()*H,v:2+Math.random()*5,c:Math.random()>.5?'#00f0ff':'#ff2e93',l:20+Math.random()*60}));}
+rs();addEventListener('resize',rs);let off=0;
+(function draw(){cx.fillStyle='rgba(7,4,15,.28)';cx.fillRect(0,0,W,H);
+ drops.forEach(d=>{cx.strokeStyle=d.c;cx.globalAlpha=.55;cx.lineWidth=1.2;cx.beginPath();cx.moveTo(d.x,d.y);cx.lineTo(d.x-2,d.y+d.l);cx.stroke();d.y+=d.v;if(d.y>H){d.y=-d.l;d.x=Math.random()*W}});
+ cx.globalAlpha=.12;cx.strokeStyle='#8a2eff';off=(off+1)%40;
+ for(let y=H*.6+off;y<H;y+=40){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke()}
+ cx.globalAlpha=1;requestAnimationFrame(draw)})();
+</script>
+</body>
+</html>
